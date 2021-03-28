@@ -86,6 +86,6 @@ create materialize view weekely_likes as (
 	from likes
 	left join posts on posts.id = likes.post_id
 	left join comments on comments.id = likes.comment_id
-);
+) with data;
 -- to refresh materialize view
 refresh materialize view  weekely_likes;
