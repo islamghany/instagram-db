@@ -59,3 +59,33 @@ from suggestion
 join users on users.id = suggestion.leader_id
 where depth > 1 -- beacuse 1 is the friend we make suggest on
 limit 50
+-- view : create a fake table that has rows from other table
+create view tags as (
+	select id, created_at , user_id, post_id, 'photo_tag' as type from photo_tags
+	union all
+	select id, created_at , user_id, post_id, 'caption_tag' as type from caption_tags
+);
+
+select * from tags;
+-- edit or create view
+create or replace view recent_posts as(
+	select * 
+	from posts 
+	order by created_at 
+	desc limit 50
+)
+-- to delete view
+drop view recent_posts
+-- materialize view : it trigger when database open and cache the rows
+-- use it to calculate some heavey values that not often changes
+create materialize view weekely_likes as (
+	select 
+		data_trunc('week', coalesce(posts.created_at, comments.created_at)) as week , 
+		count(posts.id) as num_likes_for_posts,
+		count(comments.id) as num_likes_for_comments
+	from likes
+	left join posts on posts.id = likes.post_id
+	left join comments on comments.id = likes.comment_id
+);
+-- to refresh materialize view
+refresh materialize view  weekely_likes;
